@@ -18,6 +18,7 @@
 #include <include/core/SkMaskFilter.h>
 #include <include/core/SkStrokeRec.h>
 #include <include/effects/SkDashPathEffect.h>
+#include <include/effects/SkImageFilters.h>
 #include <include/effects/SkTrimPathEffect.h>
 #include <include/effects/SkGradientShader.h>
 #include <modules/skparagraph/include/FontCollection.h>

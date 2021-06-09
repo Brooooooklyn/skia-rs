@@ -229,8 +229,8 @@ fn parse_font_stretch(stretch: &str) -> Option<f32> {
   }
 }
 
-#[inline]
-fn parse_size_px(size: f32, unit: &str) -> f32 {
+#[inline(always)]
+pub fn parse_size_px(size: f32, unit: &str) -> f32 {
   let mut size_px = size;
   match unit {
     "em" | "rem" | "pc" => {

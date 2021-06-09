@@ -7,13 +7,16 @@ use std::str::FromStr;
 use cssparser::{Color as CSSColor, Parser, ParserInput};
 use napi::*;
 
-use crate::error::SkError;
-use crate::font::Font;
-use crate::gradient::CanvasGradient;
-use crate::image::*;
-use crate::pattern::Pattern;
-use crate::sk::*;
-use crate::state::Context2dRenderingState;
+use crate::{
+  error::SkError,
+  filter::{css_filter, CssFilter},
+  font::Font,
+  gradient::CanvasGradient,
+  image::*,
+  pattern::Pattern,
+  sk::*,
+  state::Context2dRenderingState,
+};
 
 impl From<SkError> for Error {
   fn from(err: SkError) -> Error {
@@ -27,6 +30,8 @@ pub struct Context {
   pub alpha: bool,
   pub(crate) states: Vec<Context2dRenderingState>,
   pub collection: FontCollection,
+  pub filters: Vec<CssFilter>,
+  filters_string: String,
 }
 
 impl Context {
@@ -68,6 +73,9 @@ impl Context {
         Property::new(&env, "fillStyle")?
           .with_setter(set_fill_style)
           .with_getter(get_fill_style),
+        Property::new(&env, "filter")?
+          .with_setter(set_filter)
+          .with_getter(get_filter),
         Property::new(&env, "font")?
           .with_setter(set_font)
           .with_getter(get_font),
@@ -146,6 +154,8 @@ impl Context {
       path: Path::new(),
       states,
       collection: collection.clone(),
+      filters: vec![],
+      filters_string: "none".to_owned(),
     })
   }
 
@@ -1618,6 +1628,31 @@ fn set_fill_style(ctx: CallContext) -> Result<JsUndefined> {
 fn get_fill_style(ctx: CallContext) -> Result<JsUnknown> {
   let this = ctx.this_unchecked::<JsObject>();
   this.get_named_property("_fillStyle")
+}
+
+#[js_function(1)]
+fn set_filter(ctx: CallContext) -> Result<JsUndefined> {
+  let filter_str = ctx.get::<JsString>(0)?.into_utf8()?;
+  let this = ctx.this_unchecked::<JsObject>();
+  let context_2d = ctx.env.unwrap::<Context>(&this)?;
+  let filter_str = filter_str.as_str()?;
+  if filter_str.trim() == "none" {
+    context_2d.filters_string = "none".to_owned();
+    context_2d.filters = vec![];
+  } else {
+    let (_, filters) =
+      css_filter(filter_str).map_err(|e| Error::new(Status::InvalidArg, format!("{}", e)))?;
+    context_2d.filters = filters;
+    context_2d.filters_string = filter_str.to_owned();
+  }
+  ctx.env.get_undefined()
+}
+
+#[js_function]
+fn get_filter(ctx: CallContext) -> Result<JsString> {
+  let this = ctx.this_unchecked::<JsObject>();
+  let context_2d = ctx.env.unwrap::<Context>(&this)?;
+  ctx.env.create_string(context_2d.filters_string.as_str())
 }
 
 #[js_function]
