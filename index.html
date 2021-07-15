@@ -9,15 +9,30 @@
 </head>
 
 <body>
+  <style type="text/css">
+    @font-face {
+      font-family: "Iosevka Slab";
+      src: url("/__test__/fonts/iosevka-slab-regular.ttf");
+    }
+
+    body {
+      font-family: "Iosevka Slab"
+    }
+  </style>
   <canvas width="1024" height="768" id="canvas"></canvas>
 
   <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.font = '50px serif';
-    ctx.fillText('Hello world', 50, 90, 140);
+    setTimeout(() => {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.font = '50px Iosevka Slab';
 
-    ctx.fillText('Hello world', 250, 90);
+      console.log(ctx.measureText('@napi-rs/canvas'))
+
+      ctx.fillText('Hello world', 50, 90, 140);
+      ctx.fillText('Hello world', 250, 90);
+    }, 300)
+
   </script>
 </body>
 
